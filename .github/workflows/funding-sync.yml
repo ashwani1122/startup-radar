@@ -20,16 +20,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Check for new funding reports
+      - name: Request signed GitHub identity
         env:
           OIDC_AUDIENCE: startup-radar-funding-sync
-          SYNC_URL: https://startup-radar-peach.vercel.app/api/cron/funding-sync
         run: |
           set -euo pipefail
           oidc_response="$(curl --fail-with-body --silent --show-error \
             --header "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
             "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=${OIDC_AUDIENCE}")"
           oidc_token="$(jq -er '.value' <<<"${oidc_response}")"
+          echo "::add-mask::${oidc_token}"
+          printf '%s' "${oidc_token}" > "${RUNNER_TEMP}/startup-radar-oidc-token"
+          chmod 600 "${RUNNER_TEMP}/startup-radar-oidc-token"
+
+      - name: Check for new funding reports
+        env:
+          SYNC_URL: https://startup-radar-peach.vercel.app/api/cron/funding-sync
+        run: |
+          set -euo pipefail
+          oidc_token="$(<"${RUNNER_TEMP}/startup-radar-oidc-token")"
           echo "::add-mask::${oidc_token}"
           curl --fail-with-body --silent --show-error \
             --retry 2 --retry-delay 5 \
