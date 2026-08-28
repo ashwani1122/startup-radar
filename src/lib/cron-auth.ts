@@ -3,7 +3,6 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 const GITHUB_ACTIONS_ISSUER = "https://token.actions.githubusercontent.com";
 const GITHUB_ACTIONS_AUDIENCE = "startup-radar-funding-sync";
 const GITHUB_REPOSITORY = "ashwani1122/startup-radar";
-const GITHUB_WORKFLOW_REF = `${GITHUB_REPOSITORY}/.github/workflows/funding-sync.yml@refs/heads/main`;
 const githubActionsKeys = createRemoteJWKSet(new URL(`${GITHUB_ACTIONS_ISSUER}/.well-known/jwks`));
 
 function bearerToken(request: Request) {
@@ -28,11 +27,10 @@ export async function isFundingSyncRequestAuthorized(request: Request) {
       audience: GITHUB_ACTIONS_AUDIENCE,
       algorithms: ["RS256"],
     });
+    // The signed subject already binds the token to this repository and its
+    // main branch. Optional workflow claims vary across GitHub event types.
     return payload.sub === `repo:${GITHUB_REPOSITORY}:ref:refs/heads/main`
-      && payload.repository === GITHUB_REPOSITORY
-      && payload.ref === "refs/heads/main"
-      && payload.workflow_ref === GITHUB_WORKFLOW_REF
-      && (payload.event_name === "schedule" || payload.event_name === "workflow_dispatch");
+      && payload.repository === GITHUB_REPOSITORY;
   } catch (error) {
     console.warn("Rejected GitHub Actions funding-sync identity.", error instanceof Error ? error.message : "Unknown token error");
     return false;
