@@ -56,7 +56,7 @@ async function getDatabaseStartups(): Promise<StartupView[]> {
       verified: record.verified,
       isFeatured: record.isFeatured,
       sourceConfidence: record.sourceConfidence,
-      indexedAt: record.updatedAt.toISOString(),
+      indexedAt: record.createdAt.toISOString(),
       founders: record.founders.map((founder) => ({
         id: founder.id,
         name: founder.name,

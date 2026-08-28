@@ -13,6 +13,19 @@ export function formatFunding(amountUsd: number | null, amountDisplay?: string) 
   return `$${amountUsd.toLocaleString("en-US")}`;
 }
 
+export function formatDateTime(value: string | Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZone: "UTC",
+    timeZoneName: "short",
+  }).format(new Date(value));
+}
+
 export function stageLabel(value: string) {
   return value
     .toLowerCase()

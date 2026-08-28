@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { ArrowUpRight, CheckCircle2, MapPin, Users } from "lucide-react";
+import { ArrowUpRight, CalendarDays, CheckCircle2, Clock3, MapPin, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { StartupLogo } from "@/components/startup-logo";
-import { formatFunding } from "@/lib/format";
+import { formatDateTime, formatFunding } from "@/lib/format";
 import type { StartupView } from "@/lib/types";
 
 export function StartupCard({ startup, href }: { startup: StartupView; href?: string }) {
@@ -31,6 +31,24 @@ export function StartupCard({ startup, href }: { startup: StartupView; href?: st
             <p className="mt-1 text-2xl font-semibold tracking-[-0.055em]">{formatFunding(startup.latestRound.amountUsd, startup.latestRound.amountDisplay)}</p>
           </div>
           <Badge variant="secondary">{startup.latestRound.stage}</Badge>
+        </div>
+        <div className="space-y-2 rounded-lg border border-border/60 bg-muted/35 p-3 text-xs">
+          <div className="flex items-start justify-between gap-3">
+            <span className="flex shrink-0 items-center gap-1.5 text-muted-foreground">
+              <CalendarDays className="size-3.5" /> Funding announced
+            </span>
+            <time dateTime={startup.latestRound.announcedAt} className="text-right font-medium text-foreground">
+              {formatDateTime(startup.latestRound.announcedAt)}
+            </time>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <span className="flex shrink-0 items-center gap-1.5 text-muted-foreground">
+              <Clock3 className="size-3.5" /> Added to Raise
+            </span>
+            <time dateTime={startup.indexedAt} className="text-right font-medium text-foreground">
+              {formatDateTime(startup.indexedAt)}
+            </time>
+          </div>
         </div>
       </CardContent>
       <CardFooter className="justify-between border-t border-border/70 pt-4 text-xs text-muted-foreground">
