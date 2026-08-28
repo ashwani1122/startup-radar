@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CompanyStage, InvestorType, SyncStatus, type PrismaClient } from "@/generated/prisma/client";
 
 const GDELT_PROVIDER = "GDELT DOC 2.0";
-const SYNC_COOLDOWN_MS = 15 * 60 * 1000;
+const SYNC_COOLDOWN_MS = 9 * 60 * 1000;
 const LEGACY_DEMO_SLUGS = ["luma-grid", "pactnote", "kivu-health", "faro-robotics", "sunu-pay", "mira-materials"];
 const ACCENTS = ["cyan", "violet", "emerald", "amber", "rose", "blue"];
 const DEFAULT_FUNDING_QUERY = '("startup funding" OR "seed funding" OR "raises funding" OR "secures funding" OR "funding round") sourcelang:english';
