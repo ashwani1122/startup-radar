@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum CompanyStage {
+  UNKNOWN
+  PRE_SEED
+  SEED
+  SERIES_A
+  SERIES_B
+  SERIES_C
+  GROWTH
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum InvestorType {
+  ANGEL
+  ACCELERATOR
+  VENTURE_CAPITAL
+  CORPORATE
+  FAMILY_OFFICE
+}
+
+enum MessageIntent {
+  PARTNERSHIP
+  INVESTMENT
+  CUSTOMER
+  TALENT
+  PRESS
+  OTHER
+}
+
+enum MessageStatus {
+  PENDING
+  DELIVERED
+  READ
+  REPLIED
+  ARCHIVED
+}
+
+model Startup {
+  id               String         @id @default(cuid())
+  slug             String         @unique
+  name             String
+  tagline          String
+  description      String         @db.Text
+  longDescription  String         @db.Text
+  website          String?
+  headquarters     String?
+  country          String?
+  foundedYear      Int?
+  employeeCount    Int?
+  stage            CompanyStage
+  industry         String?
+  tags             String[]
+  logoText         String
+  accent           String
+  verified         Boolean        @default(false)
+  isFeatured       Boolean        @default(false)
+  sourceConfidence Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  founders         Founder[]
+  rounds           FundingRound[]
+  messages         FounderMessage[]
+  savedBy          SavedStartup[]
+
+  @@index([stage, employeeCount])
+  @@index([country, industry])
+}
+
+model Founder {
+  id               String           @id @default(cuid())
+  startupId        String
+  startup          Startup          @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  name             String
+  role             String
+  bio              String           @db.Text
+  location         String
+  linkedInUrl      String?
+  openToMessages   Boolean          @default(true)
+  responseTime     String?
+  createdAt        DateTime         @default(now())
+  receivedMessages FounderMessage[]
+
+  @@index([startupId])
+}
+
+model FundingRound {
+  id            String                 @id @default(cuid())
+  startupId     String
+  startup       Startup                @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  stage         CompanyStage
+  amountUsd     Int?
+  amountDisplay String?
+  amountLocal   Decimal?               @db.Decimal(18, 2)
+  currency      String                 @default("USD")
+  announcedAt   DateTime
+  sourceTitle   String
+  sourceUrl     String
+  sourceType    String                 @default("Company announcement")
+  sourceDomain  String?
+  sourceProvider String                @default("Manual")
+  externalId    String?                @unique
+  verified      Boolean                @default(false)
+  createdAt     DateTime               @default(now())
+  participants  FundingRoundInvestor[]
+
+  @@index([announcedAt])
+  @@index([startupId, announcedAt])
+}
+
+model FundingSync {
+  id          String     @id @default(cuid())
+  provider    String
+  status      SyncStatus
+  discovered  Int        @default(0)
+  accepted    Int        @default(0)
+  imported    Int        @default(0)
+  error       String?    @db.Text
+  startedAt   DateTime   @default(now())
+  completedAt DateTime?
+
+  @@index([provider, startedAt])
+}
+
+model Investor {
+  id          String                 @id @default(cuid())
+  name        String                 @unique
+  type        InvestorType
+  website     String?
+  rounds      FundingRoundInvestor[]
+  createdAt   DateTime               @default(now())
+}
+
+model FundingRoundInvestor {
+  fundingRoundId String
+  investorId     String
+  isLead         Boolean      @default(false)
+  fundingRound   FundingRound @relation(fields: [fundingRoundId], references: [id], onDelete: Cascade)
+  investor       Investor     @relation(fields: [investorId], references: [id], onDelete: Cascade)
+
+  @@id([fundingRoundId, investorId])
+  @@index([investorId])
+}
+
+model UserProfile {
+  id            String           @id @default(cuid())
+  clerkUserId   String           @unique
+  email         String
+  displayName   String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  sentMessages  FounderMessage[]
+  savedStartups SavedStartup[]
+}
+
+model FounderMessage {
+  id          String        @id @default(cuid())
+  startupId   String
+  startup     Startup       @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  founderId   String?
+  founder     Founder?      @relation(fields: [founderId], references: [id], onDelete: SetNull)
+  senderId    String
+  sender      UserProfile   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  subject     String
+  body        String        @db.Text
+  intent      MessageIntent
+  status      MessageStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([senderId, createdAt])
+  @@index([startupId, createdAt])
+}
+
+model SavedStartup {
+  userId    String
+  startupId String
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startup   Startup     @relation(fields: [startupId], references: [id], onDelete: Cascade)
+  createdAt DateTime    @default(now())
+
+  @@id([userId, startupId])
+  @@index([createdAt])
+}

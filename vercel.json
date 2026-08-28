@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/funding-sync",
+      "schedule": "17 2 * * *"
+    },
+    {
+      "path": "/api/cron/funding-backfill",
+      "schedule": "17 3 * * *"
+    }
+  ]
+}
