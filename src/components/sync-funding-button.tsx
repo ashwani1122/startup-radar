@@ -14,12 +14,12 @@ export function SyncFundingButton() {
     setIsSyncing(true);
     try {
       const response = await fetch("/api/startups/sync", { method: "POST" });
-      const result = await response.json() as { data?: { imported: number; skippedByCooldown: boolean }; error?: string };
+      const result = await response.json() as { data?: { queue?: { imported: number; claimed: number } }; error?: string };
       if (!response.ok) throw new Error(result.error ?? "Funding sync failed.");
 
-      toast.success(result.data?.skippedByCooldown
-        ? "The public feed was already checked recently."
-        : `${result.data?.imported ?? 0} new funding reports imported.`);
+      const imported = result.data?.queue?.imported ?? 0;
+      const checked = result.data?.queue?.claimed ?? 0;
+      toast.success(imported ? `${imported} new funding reports imported.` : `${checked} queued reports checked; no new rounds yet.`);
       router.refresh();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Funding sync failed.");

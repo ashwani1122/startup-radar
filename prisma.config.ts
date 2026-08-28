@@ -4,7 +4,7 @@ import { defineConfig, env } from "prisma/config";
 config({ path: ".env.local" });
 
 const runtimeDatabaseUrl = env("DATABASE_URL");
-const migrationDatabaseUrl = process.env.DIRECT_URL ?? runtimeDatabaseUrl.replace("-pooler.", ".");
+const migrationDatabaseUrl = process.env.DIRECT_URL ?? runtimeDatabaseUrl;
 
 export default defineConfig({
   schema: "prisma/schema.prisma",

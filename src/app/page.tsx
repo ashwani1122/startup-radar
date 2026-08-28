@@ -41,7 +41,7 @@ export default async function Home() {
               </Reveal>
               <Reveal delay={0.08}>
                 <p className="mt-7 max-w-2xl text-balance text-lg leading-7 text-muted-foreground sm:text-xl">
-                  Raise turns public funding announcements into useful, source-backed profiles of small teams, founders, and the investors betting on them.
+                  Raise monitors public funding announcements and filings, then turns supported claims into source-backed profiles. Coverage is expanding and never presented as a complete worldwide record.
                 </p>
                 <div className="mt-8 flex flex-wrap items-center gap-3">
                   <Button asChild size="lg" className="h-11 px-5"><Link href="/dashboard">Explore recent raises <ArrowRight data-icon="inline-end" /></Link></Button>
@@ -56,7 +56,7 @@ export default async function Home() {
             <Reveal delay={0.16} className="lg:pt-5">
               <Card className="relative overflow-hidden border-border/80 bg-card/90 shadow-2xl shadow-black/10">
                 <div className="flex items-center justify-between border-b px-5 py-4">
-                  <div><p className="text-sm font-medium">Live funding pulse</p><p className="text-xs text-muted-foreground">Small teams · newest first</p></div>
+                  <div><p className="text-sm font-medium">Public funding pulse</p><p className="text-xs text-muted-foreground">Monitored sources · small teams first</p></div>
                   <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-primary"><span className="size-1.5 animate-pulse rounded-full bg-primary" /> monitoring</span>
                 </div>
                 <CardContent className="space-y-1 p-2">
@@ -89,7 +89,7 @@ export default async function Home() {
         <section id="how-it-works" className="border-y bg-muted/25">
           <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8 lg:py-28">
             <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
-              <div><Badge variant="outline">The data loop</Badge><h2 className="mt-5 text-balance text-4xl font-semibold tracking-[-0.05em]">From a public signal to a profile you can act on.</h2><p className="mt-5 leading-7 text-muted-foreground">Raise is designed around provenance. It explains what was found, where it came from, and what still needs verification.</p></div>
+              <div><div className="flex flex-wrap gap-2"><Badge variant="outline">The data loop</Badge><Badge variant="destructive">Not exhaustive</Badge></div><h2 className="mt-5 text-balance text-4xl font-semibold tracking-[-0.05em]">From a public signal to a profile you can act on.</h2><p className="mt-5 leading-7 text-muted-foreground">Raise is designed around provenance. It explains what was found, where it came from, what the monitored sources can miss, and what still needs verification.</p></div>
               <div className="grid gap-px overflow-hidden rounded-2xl border bg-border md:grid-cols-3">
                 {[
                   { number: '01', icon: Globe2, title: 'Detect', copy: 'Monitor public announcements and filings across markets.' },

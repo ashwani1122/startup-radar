@@ -14,14 +14,17 @@ Raise is a source-backed discovery product for recently funded, early-stage star
 - Saved startups
 - In-app founder message requests
 - Prisma 7 schema and Neon/PostgreSQL data access
-- Automated funding discovery from the free GDELT DOC 2.0 public news index
+- Durable PostgreSQL candidate queue with retries and cross-source deduplication
+- SEC EDGAR Form D live monitoring and current-year daily-index backfill
+- GDELT live monitoring plus bounded 12-hour current-year search slices
+- GlobeNewswire financing/press-release feeds and configurable official company/VC/accelerator RSS or Atom feeds
 - Source URLs on every imported round and a current-calendar-year dashboard window
 - Authenticated manual refresh plus a protected Vercel Cron endpoint
 
 ## Local setup
 
 1. Run `npm install`.
-2. Copy `.env.example` to `.env.local` and add `DATABASE_URL`, Clerk keys, and a long random `CRON_SECRET`.
+2. Copy `.env.example` to `.env.local` and add `DATABASE_URL`, Clerk keys, a long random `CRON_SECRET`, and a compliant `SEC_USER_AGENT` containing a monitored contact email.
 3. In Clerk, enable Google as a social connection and keep the sign-in/sign-up routes from `.env.example`.
 4. Run `npm run db:generate`, `npx prisma migrate deploy`, and `npm run db:backfill-funding`.
 5. Run `npm run dev`.
@@ -42,6 +45,8 @@ The current implementation stores authenticated message requests in PostgreSQL. 
 
 ## Data ingestion
 
-`npm run db:sync-funding` checks the newest GDELT reports. `npm run db:backfill-funding` searches the current calendar year with smaller quarterly query slices. A GitHub Actions schedule calls `/api/cron/funding-sync` every 10 minutes using a signed GitHub OIDC identity. Vercel Cron keeps a daily current-sync fallback and runs `/api/cron/funding-backfill` one hour later; the second job retries one missing current-year search slice per day. Vercel cron requests use `Authorization: Bearer <CRON_SECRET>`. Signed-in users can also request a current refresh from the dashboard. Older records remain in PostgreSQL for deduplication but are hidden automatically when the calendar year changes.
+`npm run db:sync-funding` checks live sources, advances one bounded historical slice per provider, and processes the durable candidate queue. `npm run db:backfill-funding` advances only the current-year backfill sources and processes a larger queue batch. A GitHub Actions schedule calls `/api/cron/funding-sync` every 10 minutes using a signed GitHub OIDC identity. Vercel Cron keeps daily live and backfill fallbacks. Failed providers do not block successful providers, and failed candidates retry from PostgreSQL with increasing delays. Signed-in users can request a current refresh from the dashboard. Older rounds remain in PostgreSQL for deduplication but are hidden automatically when the calendar year changes.
 
-GDELT is a broad, free news index—not a complete deal database. Imports are deliberately strict, details that are not clearly reported stay empty, and each record keeps its original public article so users can verify it.
+The default adapters monitor GDELT, official SEC Form D filings, and GlobeNewswire financing/press-release feeds. Set `FUNDING_RSS_FEEDS` to a JSON array to add official company, VC, accelerator, directory, RSS, or Atom feeds without changing code. Supported `kind` values are `RSS`, `PRESS_RELEASE`, `ACCELERATOR`, `DIRECTORY`, `COMPANY`, and `VC`.
+
+This is a public-source monitor, not a complete deal database. Form D notices are self-reported and do not prove that an issuer is a startup; news and press feeds can miss private or local announcements. Imports remain deliberately strict, unavailable founder or investor details stay empty, and every published round keeps its original source for verification.

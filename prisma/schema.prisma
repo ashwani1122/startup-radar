@@ -23,6 +23,26 @@ enum SyncStatus {
   FAILED
 }
 
+enum FundingCandidateStatus {
+  PENDING
+  PROCESSING
+  RETRY
+  SUCCEEDED
+  REJECTED
+  DEAD
+}
+
+enum FundingSourceKind {
+  NEWS
+  SEC_FORM_D
+  RSS
+  PRESS_RELEASE
+  ACCELERATOR
+  DIRECTORY
+  COMPANY
+  VC
+}
+
 enum InvestorType {
   ANGEL
   ACCELERATOR
@@ -115,9 +135,56 @@ model FundingRound {
   verified      Boolean                @default(false)
   createdAt     DateTime               @default(now())
   participants  FundingRoundInvestor[]
+  candidates    FundingCandidate[]
 
   @@index([announcedAt])
   @@index([startupId, announcedAt])
+}
+
+model FundingCandidate {
+  id             String                 @id @default(cuid())
+  provider       String
+  sourceKind     FundingSourceKind
+  externalId     String
+  title          String?
+  sourceUrl      String
+  publishedAt    DateTime?
+  payload        Json
+  status         FundingCandidateStatus @default(PENDING)
+  attempts       Int                    @default(0)
+  nextAttemptAt  DateTime               @default(now())
+  lockedAt       DateTime?
+  processedAt    DateTime?
+  lastError      String?                @db.Text
+  fundingRoundId String?
+  fundingRound   FundingRound?          @relation(fields: [fundingRoundId], references: [id], onDelete: SetNull)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@unique([provider, externalId])
+  @@index([status, nextAttemptAt])
+  @@index([provider, publishedAt])
+  @@index([fundingRoundId])
+}
+
+model FundingSourceState {
+  key           String   @id
+  label         String
+  kind          FundingSourceKind
+  cursor        Json?
+  enabled       Boolean  @default(true)
+  lastStatus    SyncStatus?
+  lastAttemptAt DateTime?
+  lastSuccessAt DateTime?
+  lastError     String?  @db.Text
+  discovered    Int      @default(0)
+  queued        Int      @default(0)
+  imported      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([kind, enabled])
+  @@index([lastSuccessAt])
 }
 
 model FundingSync {

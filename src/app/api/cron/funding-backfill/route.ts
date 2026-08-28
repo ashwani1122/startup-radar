@@ -1,8 +1,8 @@
 import { isVercelCronRequestAuthorized } from "@/lib/cron-auth";
-import { syncNextHistoricalSlice } from "@/lib/funding-ingestion";
+import { runHistoricalFundingPipeline } from "@/lib/funding/orchestrator";
 import { prisma } from "@/lib/prisma";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function GET(request: Request) {
   if (!isVercelCronRequestAuthorized(request)) {
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await syncNextHistoricalSlice(prisma);
+    const result = await runHistoricalFundingPipeline(prisma);
     console.info("Scheduled historical funding sync completed.", result);
     return Response.json({ data: result });
   } catch (error) {

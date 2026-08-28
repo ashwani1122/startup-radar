@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { syncPublicFunding } from "../src/lib/funding-ingestion";
+import { runFundingPipeline } from "../src/lib/funding/orchestrator";
 
 config({ path: ".env.local" });
 
@@ -10,6 +10,6 @@ if (!connectionString) throw new Error("DATABASE_URL is required for funding syn
 
 const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 
-syncPublicFunding(prisma, { force: true })
+runFundingPipeline(prisma, { includeBackfill: true, queueLimit: 16 })
   .then((result) => console.info(JSON.stringify(result, null, 2)))
   .finally(async () => prisma.$disconnect());

@@ -1,8 +1,8 @@
 import { isFundingSyncRequestAuthorized } from "@/lib/cron-auth";
-import { syncPublicFunding } from "@/lib/funding-ingestion";
+import { runFundingPipeline } from "@/lib/funding/orchestrator";
 import { prisma } from "@/lib/prisma";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function GET(request: Request) {
   if (!(await isFundingSyncRequestAuthorized(request))) {
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const result = await syncPublicFunding(prisma);
+    const result = await runFundingPipeline(prisma, { includeBackfill: true });
     console.info("Scheduled funding sync completed.", result);
     return Response.json({ data: result });
   } catch (error) {

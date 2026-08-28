@@ -1,15 +1,15 @@
 import { getApiIdentity } from "@/lib/api-auth";
-import { syncPublicFunding } from "@/lib/funding-ingestion";
+import { runFundingPipeline } from "@/lib/funding/orchestrator";
 import { prisma } from "@/lib/prisma";
 
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 export async function POST() {
   const authentication = await getApiIdentity();
   if (authentication.error) return authentication.error;
 
   try {
-    const result = await syncPublicFunding(prisma);
+    const result = await runFundingPipeline(prisma, { includeBackfill: false });
     return Response.json({ data: result });
   } catch (error) {
     console.error("Authenticated funding sync failed.", error);
